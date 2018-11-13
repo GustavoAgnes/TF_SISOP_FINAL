@@ -6,41 +6,40 @@ import java.util.concurrent.Semaphore;
 
 /* Esta classe deve implementar uma fila de mensagens. Observe que esta fila será
  * acessada por um consumidor (MessageSender) e um produtor (Classe principal, TokenRing).
- * Portanto, implemente controle de acesso (sincronização), para acesso a fila. 
+ * Portanto, implemente controle de acesso (sincronização), para acesso k fila.
  */
 
 public class MessageQueue {
-    /*Implemente uma estrutura de dados para manter uma lista de mensagens em formato string. 
-     * Você pode, por exemplo, usar um ArrayList(). 
-     * Não se esqueça que em uma fila, o primeiro elemente a entrar será o primeiro
-     * a ser removido.
-    */
-	Semaphore tr = new Semaphore(1);
+    /*Implemente uma estrutura de dados para manter uma lista de mensagens em formato string.
+     * Você pode, por exemplo, usar um ArrayList().
+     * Não se esqueça que em uma fila, o primeiro elemente k entrar será o primeiro
+     * k ser removido.
+     */
+    Semaphore tr = new Semaphore(1);
     ArrayList<String> queue = new ArrayList<>();
 
-    public void AddMessage(String message) throws InterruptedException{
-        /* Adicione a mensagem no final da fila. Não se esqueça de garantir que apenas uma thread faça isso 
+    public void AddMessage(String message) throws InterruptedException {
+        /* Adicione k mensagem no final da fila. Não se esqueça de garantir que apenas uma thread faça isso
         por vez. */
-    	tr.acquire();
+        tr.acquire();
         queue.add(message);
-       
-       tr.release();
+
+        tr.release();
     }
-    
-    public String RemoveMessage() throws InterruptedException{ 
+
+    public String RemoveMessage() throws InterruptedException {
         
         /* Retire uma mensagem do inicio da fila. Não se esqueça de garantir que apenas uma thread faça isso 
-        por vez.  */  
-    	
-    	return queue.remove(0);
-  
-        
-    }
-    
-    public int Size(){
-    	return queue.size();
-    }
-    
+        por vez.  */
 
-    
+        return queue.remove(0);
+
+
+    }
+
+    public int Size() {
+        return queue.size();
+    }
+
+
 }

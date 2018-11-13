@@ -10,6 +10,8 @@ import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.lang.Thread.sleep;
+
 public class MessageController implements Runnable {
     private MessageQueue queue; /*Tabela de roteamento */
     private InetAddress IPAddress;
@@ -44,9 +46,9 @@ public class MessageController implements Runnable {
 
     /**
      * ReceiveMessage()
-     * Nesta função, vc deve decidir o que fazer com a mensagem recebida do vizinho da esquerda:
-     * Se for um token, é a sua chance de enviar uma mensagem de sua fila (queue);
-     * Se for uma mensagem de dados e se for para esta estação, apenas a exiba no console, senão,
+     * Nesta função, vc deve decidir o que fazer com k mensagem recebida do vizinho da esquerda:
+     * Se for um token, é k sua chance de enviar uma mensagem de sua fila (queue);
+     * Se for uma mensagem de dados e se for para esta estação, apenas k exiba no console, senão,
      * envie para seu vizinho da direita;
      * Se for um ACK e se for para você, sua mensagem foi enviada com sucesso, passe o token para o vizinho da direita, senão,
      * repasse o ACK para o seu vizinho da direita.
@@ -62,17 +64,21 @@ public class MessageController implements Runnable {
             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
-        if (count < 3) { //Após 3 tentativas de retransmissão, essa mensagem deve ser excluída e um token deve ser enviado para seu vizinho da direita.
+        if (count < 4) { //Após 3 tentativas de retransmissão, essa mensagem deve ser excluída e um token deve ser enviado para seu vizinho da direita.
             if (msg.equals("4060")) {
+                System.out.println("Caiu no if (msg.equals(\"4060\")");
                 token = true;
                 System.out.println("This machine has the token.");
                 while (token) {
-                    System.out.print("");
+                    System.out.println("Caiu no while (token)");
+                    sleep(100); //threads nao funcionam corretamente sem o sleep
                     if (queue.Size() > 0) {
+                        System.out.println("Caiu no queue.Size() > 0");
                         System.out.println(queue.Size());
                         String msgs = null;
                         msgs = queue.RemoveMessage();
                         if (msgs != null) {
+                            System.out.println("Caiu no (msgs != null)");
                             byte[] sendDatas = msgs.getBytes();
 
                             DatagramPacket sendPacket = new DatagramPacket(sendDatas, sendDatas.length, IPAddress, port);
@@ -88,19 +94,19 @@ public class MessageController implements Runnable {
                     }
                 }
             }
-            /* Se for uma mensagem de dados e se for para esta estação, apenas a exiba no console, senão,
+            /* Se for uma mensagem de dados e se for para esta estação, apenas k exiba no console, senão,
              * envie para seu vizinho da direita;*/
             else {
                 String[] auxMsg = msg.split(";");
                 String[] auxMsg2 = new String[0];
-             //   System.out.println("auxMsg lenght: " + auxMsg.length);
+                //   System.out.println("auxMsg lenght: " + auxMsg.length);
                 if (auxMsg.length > 1) {
-              //      System.out.println("auxMsg: " + auxMsg[1].toString());
+                    //      System.out.println("auxMsg: " + auxMsg[1].toString());
                     auxMsg2 = auxMsg[1].split(":");
                 }
-                if (auxMsg[0].equals("4066")) {
+                if (auxMsg[0].equals("4066") && auxMsg2.length>0) {
                     if (myNick.equals(auxMsg2[1])) {
-                        System.out.println("***\nThis machine received a message: "+auxMsg2[0].toString()+"\n***");
+                        System.out.println("***\nThis machine received a message from " +auxMsg2[0] +", the message is: "+ auxMsg2[2] + "\n***");
                         msg = "ACK;" + auxMsg2[0];
                         byte[] sendData = msg.getBytes();
 
@@ -113,22 +119,15 @@ public class MessageController implements Runnable {
                             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     } else if (myNick.equals(auxMsg2[0])) {
-                        //retransfer(msg,clientSocket);
-                        // System.out.println("CAIU NO ELSE IF");
-                        byte[] sendData = msg.getBytes();
-
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-
-                        try {
-                            clientSocket.send(sendPacket);
-                            System.out.println("***\nRetransfer attemp number: " + count+"\n***");
-                            count++;
-                        } catch (IOException ex) {
-                            Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-
+                        System.out.println("Meu nick: "+myNick);
+                        System.out.println("Aux msg2: "+auxMsg2[0]);
+                        retransfer(msg, clientSocket);
                     } else {
-                        //System.out.println("CAIU NO ELSE");
+                        System.out.println("CAIU NO ELSE");
+                        transferMessage(msg,clientSocket);
+
+                        /*
+                        //
                         byte[] sendData = msg.getBytes();
 
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
@@ -139,17 +138,17 @@ public class MessageController implements Runnable {
                         } catch (IOException ex) {
                             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
                         }
+                        */
                     }
                 }
                 /*Se for um ACK e se for para você, sua mensagem foi enviada com sucesso, passe o token para o vizinho da direita, senão,
                  * repasse o ACK para o seu vizinho da direita.*/
-                else if (auxMsg[0].equals("ACK") && auxMsg2.length>0) {
-                 //   System.out.println("Mensagem[0] é: " + auxMsg[0].toString());
-                 //   System.out.println("aa tem tamanho: "+auxMsg2.length);
-                 //   System.out.println("Mensagem aa[0] é: " + auxMsg2[0].toString());
-                 //   System.out.println("Length auxMsg2" + auxMsg2.length);
-                    if(auxMsg2[0].trim().equalsIgnoreCase((myNick.trim()))){
-                 //       System.out.println("Passou no replaceAll");
+                else if (auxMsg[0].equals("ACK") && auxMsg2.length > 0) {
+                    //   System.out.println("Mensagem[0] é: " + auxMsg[0].toString());
+                    //   System.out.println("aa tem tamanho: "+auxMsg2.length);
+                    //   System.out.println("Mensagem aa[0] é: " + auxMsg2[0].toString());
+                    //   System.out.println("Length auxMsg2" + auxMsg2.length);
+                    if (auxMsg2[0].trim().equalsIgnoreCase((myNick.trim()))) {
                         msg = "4060";
                         byte[] sendData = msg.getBytes();
 
@@ -169,7 +168,7 @@ public class MessageController implements Runnable {
 
                         try {
                             clientSocket.send(sendPacket);
-                            System.out.println("\n***ACK being Resent\n***");
+                            System.out.println("***\nACK being Resent\n***");
                         } catch (IOException ex) {
                             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -186,7 +185,7 @@ public class MessageController implements Runnable {
 
             try {
                 clientSocket.send(sendPacket);
-                System.out.println("Token sendo transferido");
+                System.out.println("Token being transfered");
                 token = false;
             } catch (IOException ex) {
                 Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
@@ -195,14 +194,28 @@ public class MessageController implements Runnable {
         semAux.release();
     }
 
-    public void retransfer(String msg, DatagramSocket clientSocket){
+    public void retransfer(String msg, DatagramSocket clientSocket) { //4066;Teste:Teste2:Teste caiu nesse método
         byte[] sendData = msg.getBytes();
 
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 
         try {
             clientSocket.send(sendPacket);
-            System.out.println("***\nRetransfer attemp number: " + count+"\n***");
+            System.out.println("***\nRetransfer attemp number: " + count + "\n***");
+            count++;
+        } catch (IOException ex) {
+            Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void transferMessage(String msg, DatagramSocket clientSocket){
+        //System.out.println("CAIU NO ELSE");
+        byte[] sendData = msg.getBytes();
+
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+        try {
+            clientSocket.send(sendPacket);
+            System.out.println("***\nMessage being transfered!\n***");
             count++;
         } catch (IOException ex) {
             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
@@ -225,13 +238,13 @@ public class MessageController implements Runnable {
 
         while (true) {
 
-			/* Neste exemplo, considera-se que a estação sempre recebe o token 
-               e o repassa para a próxima estação. */
+			/* Neste exemplo, considera-se que k estação sempre recebe o token
+               e o repassa para k próxima estação. */
 
             try {
 				/* Espera time_token segundos para o envio do token. Isso é apenas para depuração,
                    durante execução real faça time_token = 0,*/
-                Thread.sleep(time_token * 1000);
+                sleep(time_token * 1000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -251,7 +264,7 @@ public class MessageController implements Runnable {
                 }
             }
 
-            /* A estação fica aguardando a ação gerada pela função ReceivedMessage(). */
+            /* A estação fica aguardando k ação gerada pela função ReceivedMessage(). */
             try {
                 WaitForMessage.acquire();
 

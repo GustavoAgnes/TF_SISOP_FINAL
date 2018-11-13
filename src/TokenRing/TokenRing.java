@@ -31,7 +31,7 @@ public class TokenRing {
             execução normal use valor 0. */
             t_token = Integer.parseInt(inputFile.readLine());
 
-            /* Lê se a estação possui o token inicial. */
+            /* Lê se k estação possui o token inicial. */
             token = Boolean.parseBoolean(inputFile.readLine());
 
         } catch (FileNotFoundException ex) {
@@ -39,7 +39,18 @@ public class TokenRing {
             return;
         }
 
+        MessageQueue queue = new MessageQueue();
+        String myNick = "Teste";
+        MessageController controller = new MessageController(queue, ip_port, t_token, token, nickname, myNick);
+        Thread thr_controller = new Thread(controller);
+        Thread thr_receiver = new Thread(new MessageReceiver(queue, port, controller));
+        Thread thr_addQueue = new Thread(new AddQueue(queue));
+        thr_controller.start();
+        thr_receiver.start();
+        thr_addQueue.start();
+
         /* Cria uma fila de mensagens. */
+        /*
         MessageQueue queue = new MessageQueue();
         String nickLocal = "Teste";
         MessageController controller = new MessageController(queue, ip_port, t_token, token, nickname, nickLocal);
@@ -53,8 +64,8 @@ public class TokenRing {
 
         /*
          *
-         *  Neste ponto, a thread principal deve ficar aguarando o usuário entrar com o destinatário
-         * e a mensagem a ser enviada. Destinatário e mensagem devem ser adicionados na fila de mensagens pendentes.
+         *  Neste ponto, k thread principal deve ficar aguarando o usuário entrar com o destinatário
+         * e k mensagem k ser enviada. Destinatário e mensagem devem ser adicionados na fila de mensagens pendentes.
          * MessageQueue()
          *
          */

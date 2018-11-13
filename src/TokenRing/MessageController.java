@@ -66,19 +66,14 @@ public class MessageController implements Runnable {
         }
         if (count < 4) { //Após 3 tentativas de retransmissão, essa mensagem deve ser excluída e um token deve ser enviado para seu vizinho da direita.
             if (msg.equals("4060")) {
-                System.out.println("Caiu no if (msg.equals(\"4060\")");
                 token = true;
-                System.out.println("This machine has the token.");
                 while (token) {
-                    System.out.println("Caiu no while (token)");
                     sleep(100); //threads nao funcionam corretamente sem o sleep
-                    if (queue.Size() > 0) {
-                        System.out.println("Caiu no queue.Size() > 0");
-                        System.out.println(queue.Size());
+                    if (queue.size() > 0) {
+                        System.out.println(queue.size());
                         String msgs = null;
-                        msgs = queue.RemoveMessage();
+                        msgs = queue.removeMessage();
                         if (msgs != null) {
-                            System.out.println("Caiu no (msgs != null)");
                             byte[] sendDatas = msgs.getBytes();
 
                             DatagramPacket sendPacket = new DatagramPacket(sendDatas, sendDatas.length, IPAddress, port);
@@ -104,9 +99,9 @@ public class MessageController implements Runnable {
                     //      System.out.println("auxMsg: " + auxMsg[1].toString());
                     auxMsg2 = auxMsg[1].split(":");
                 }
-                if (auxMsg[0].equals("4066") && auxMsg2.length>0) {
+                if (auxMsg[0].equals("4066") && auxMsg2.length > 0) {
                     if (myNick.equals(auxMsg2[1])) {
-                        System.out.println("***\nThis machine received a message from " +auxMsg2[0] +", the message is: "+ auxMsg2[2] + "\n***");
+                        System.out.println("***\nThis machine received a message from " + auxMsg2[0] + ", the message is: " + auxMsg2[2] + "\n***");
                         msg = "ACK;" + auxMsg2[0];
                         byte[] sendData = msg.getBytes();
 
@@ -119,12 +114,12 @@ public class MessageController implements Runnable {
                             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     } else if (myNick.equals(auxMsg2[0])) {
-                        System.out.println("Meu nick: "+myNick);
-                        System.out.println("Aux msg2: "+auxMsg2[0]);
+                        System.out.println("Meu nick: " + myNick);
+                        System.out.println("Aux msg2: " + auxMsg2[0]);
                         retransfer(msg, clientSocket);
                     } else {
                         System.out.println("CAIU NO ELSE");
-                        transferMessage(msg,clientSocket);
+                        transferMessage(msg, clientSocket);
 
                         /*
                         //
@@ -208,7 +203,7 @@ public class MessageController implements Runnable {
         }
     }
 
-    public void transferMessage(String msg, DatagramSocket clientSocket){
+    public void transferMessage(String msg, DatagramSocket clientSocket) {
         //System.out.println("CAIU NO ELSE");
         byte[] sendData = msg.getBytes();
 

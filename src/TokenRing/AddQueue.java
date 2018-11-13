@@ -19,7 +19,7 @@ public class AddQueue implements Runnable {
             String b = k.nextLine();
             try {
                 queue.AddMessage(b);
-                System.out.println("Total messages in queue: " + queue.Size());
+                System.out.println("Total messages in queue: " + queue.size());
 
             } catch (InterruptedException e) {
                 e.printStackTrace();

@@ -27,7 +27,7 @@ public class MessageQueue {
         tr.release();
     }
 
-    public String RemoveMessage() throws InterruptedException {
+    public String removeMessage() throws InterruptedException {
         
         /* Retire uma mensagem do inicio da fila. Não se esqueça de garantir que apenas uma thread faça isso 
         por vez.  */
@@ -37,7 +37,7 @@ public class MessageQueue {
 
     }
 
-    public int Size() {
+    public int size() {
         return queue.size();
     }
 

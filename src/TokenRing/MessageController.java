@@ -20,7 +20,7 @@ public class MessageController implements Runnable {
     private String nickname;
     private int time_token;
     private Boolean token;
-    private String myNick;
+    private String myNickname;
     private int count;
 
     public MessageController(MessageQueue q,
@@ -39,7 +39,7 @@ public class MessageController implements Runnable {
         nickname = n;
         WaitForMessage = new Semaphore(0);
         semAux = new Semaphore(0);
-        myNick = myN;
+        myNickname = myN;
         count = 0;
 
     }
@@ -100,7 +100,7 @@ public class MessageController implements Runnable {
                     auxMsg2 = auxMsg[1].split(":");
                 }
                 if (auxMsg[0].equals("4066") && auxMsg2.length > 0) {
-                    if (myNick.equals(auxMsg2[1])) {
+                    if (myNickname.equals(auxMsg2[1])) {
                         System.out.println("***\nThis machine received a message from " + auxMsg2[0] + ", the message is: " + auxMsg2[2] + "\n***");
                         msg = "ACK;" + auxMsg2[0];
                         byte[] sendData = msg.getBytes();
@@ -113,8 +113,8 @@ public class MessageController implements Runnable {
                         } catch (IOException ex) {
                             Logger.getLogger(MessageController.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                    } else if (myNick.equals(auxMsg2[0])) {
-                        System.out.println("Meu nick: " + myNick);
+                    } else if (myNickname.equals(auxMsg2[0])) {
+                        System.out.println("Meu nick: " + myNickname);
                         System.out.println("Aux msg2: " + auxMsg2[0]);
                         retransfer(msg, clientSocket);
                     } else {
@@ -143,7 +143,7 @@ public class MessageController implements Runnable {
                     //   System.out.println("aa tem tamanho: "+auxMsg2.length);
                     //   System.out.println("Mensagem aa[0] é: " + auxMsg2[0].toString());
                     //   System.out.println("Length auxMsg2" + auxMsg2.length);
-                    if (auxMsg2[0].trim().equalsIgnoreCase((myNick.trim()))) {
+                    if (auxMsg2[0].trim().equalsIgnoreCase((myNickname.trim()))) {
                         msg = "4060";
                         byte[] sendData = msg.getBytes();
 
